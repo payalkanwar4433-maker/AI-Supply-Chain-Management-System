@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="main-content">
+
+    <header class="dashboard-header">
+        <div>
+            <h1>Inventory Management</h1>
+            <p>Manage product stock and availability</p>
+        </div>
+        <a href="/dashboard">Back to Dashboard</a>
+    </header>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+
+    <section class="module-card">
+        <h2>Add Inventory Batch</h2>
+
+        <form action="/web/inventory/add" method="POST">
+
+            <select name="product_id" required>
+                <option value="">Select Product</option>
+
+                {% for product in products %}
+                    <option value="{{ product.id }}">
+                        {{ product.product_name }} -
+                        {% if product.has_expiry %}
+                            FEFO
+                        {% else %}
+                            FIFO
+                        {% endif %}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <input
+                type="text"
+                name="batch_number"
+                placeholder="Batch Number"
+                required
+            >
+
+            <input
+                type="number"
+                name="quantity"
+                placeholder="Quantity"
+                min="1"
+                required
+            >
+
+            <label>Received Date</label>
+            <input type="date" name="received_date">
+
+            <label>Expiry Date (Required for FEFO products)</label>
+            <input type="date" name="expiry_date">
+
+            <button type="submit">Add Batch</button>
+
+        </form>
+    </section>
+
+    <section class="module-card module-section">
+
+        <h2>Inventory Batch List</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th>Batch Number</th>
+                    <th>Available Quantity</th>
+                    <th>Received Date</th>
+                    <th>Expiry Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for batch in batches %}
+                <tr>
+                    <td>{{ batch.id }}</td>
+                    <td>{{ batch.product.product_name }}</td>
+                    <td>{{ batch.product.sku }}</td>
+                    <td>{{ batch.batch_number }}</td>
+                    <td>{{ batch.quantity }}</td>
+                    <td>{{ batch.received_date.strftime('%d-%m-%Y') }}</td>
+
+                    <td>
+                        {% if batch.expiry_date %}
+                            {{ batch.expiry_date.strftime('%d-%m-%Y') }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <form
+                            action="/web/inventory/update/{{ batch.id }}"
+                            method="POST"
+                        >
+                            <input
+                                type="number"
+                                name="quantity"
+                                value="{{ batch.quantity }}"
+                                min="0"
+                                required
+                            >
+
+                            <button type="submit">Update</button>
+                        </form>
+
+                        <form
+                            action="/web/inventory/delete/{{ batch.id }}"
+                            method="POST"
+                        >
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+
+                {% else %}
+                <tr>
+                    <td colspan="8">No inventory batches added yet.</td>
+                </tr>
+                {% endfor %}
+
+            </tbody>
+        </table>
+
+    </section>
+
+</div>
+
+</body>
+</html>

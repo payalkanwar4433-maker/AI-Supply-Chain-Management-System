@@ -1,0 +1,126 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <div class="main-content">
+
+        <header class="dashboard-header">
+            <div>
+                <h1>Product Management</h1>
+                <p>Add and manage your products</p>
+            </div>
+            <a href="/dashboard">Back to Dashboard</a>
+        </header>
+
+        <section class="module-card">
+            <h2>Add New Product</h2>
+
+            {% if error %}
+                <p class="error">{{ error }}</p>
+            {% endif %}
+
+            <form action="/web/products/add" method="POST">
+
+                <input type="text" name="product_name"
+                       placeholder="Product Name" required>
+
+                <input type="text" name="sku"
+                       placeholder="Product SKU" required>
+
+                <textarea name="description"
+                          placeholder="Product Description"
+                          rows="3"></textarea>
+
+                <input type="text" name="category"
+                       placeholder="Product Category" required>
+
+                <input type="number" name="unit_price"
+                       placeholder="Unit Price"
+                       min="0.01" step="0.01" required>
+
+                <select name="supplier_id" required>
+                    <option value="">Select Supplier</option>
+                    {% for supplier in suppliers %}
+                        <option value="{{ supplier.id }}">
+                            {{ supplier.supplier_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <label>Expiry Tracking</label>
+                <select name="has_expiry" required>
+                    <option value="false">No - FIFO</option>
+                    <option value="true">Yes - FEFO</option>
+                </select>
+
+                <button type="submit">Add Product</button>
+
+            </form>
+        </section>
+
+        <section class="module-card">
+            <h2>Product List</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Product Name</th>
+                        <th>SKU</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Supplier</th>
+                        <th>Expiry Tracking</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.id }}</td>
+                        <td>{{ product.product_name }}</td>
+                        <td>{{ product.sku }}</td>
+                        <td>{{ product.category }}</td>
+                        <td>{{ product.unit_price }}</td>
+                        <td>{{ product.supplier.supplier_name }}</td>
+                        <td>
+                            {% if product.has_expiry %}
+                                FEFO
+                            {% else %}
+                                FIFO
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <a href="/web/products/edit/{{ product.id }}">
+                                Edit
+                            </a>
+
+                            <form action="/web/products/delete/{{ product.id }}"
+                                  method="POST">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="8">No products added yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+
+    </div>
+
+</body>
+</html>

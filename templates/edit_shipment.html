@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Shipment</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Edit Shipment</h1>
+
+    <form action="/web/shipments/edit/{{ shipment.id }}" method="POST">
+
+        <label>Shipment Number</label>
+        <input type="text" value="{{ shipment.shipment_number }}" readonly>
+
+        <label>Carrier Name</label>
+        <input
+            type="text"
+            name="carrier_name"
+            value="{{ shipment.carrier_name }}"
+            required
+        >
+
+        <label>Tracking Number</label>
+        <input
+            type="text"
+            name="tracking_number"
+            value="{{ shipment.tracking_number }}"
+            required
+        >
+
+        <button type="submit">Update Shipment</button>
+
+    </form>
+
+    <a href="/shipments">Back to Shipments</a>
+
+</div>
+
+</body>
+</html>

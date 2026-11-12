@@ -1,0 +1,22 @@
+from database import SessionLocal
+from models import Role
+
+db=SessionLocal()
+
+roles=[
+    "Admin",
+    "Warehouse Manager",
+    "Logistics Manager",
+    "Sales Manager"
+    ]
+for role_name in roles:
+    existing_role=db.query(Role).filter (
+        Role.role_name==role_name
+    ).first()
+
+    if existing_role is None:
+        new_role=Role(role_name=role_name)
+        db.add(new_role)
+db.commit()
+db.close()
+print("Default roles added successfully!")

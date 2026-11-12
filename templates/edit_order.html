@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Order</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="main-content">
+
+    <header class="dashboard-header">
+        <div>
+            <h1>Edit Order</h1>
+            <p>Update customer and order quantity</p>
+        </div>
+        <a href="/orders">Back to Orders</a>
+    </header>
+
+    <section class="module-card">
+
+        <h2>Update Order Details</h2>
+
+        <form action="/web/orders/edit/{{ order.id }}" method="POST">
+
+            <label>Order Number</label>
+            <input
+                type="text"
+                value="{{ order.order_number }}"
+                readonly
+            >
+
+            <label>Customer Name</label>
+            <input
+                type="text"
+                name="customer_name"
+                value="{{ order.customer_name }}"
+                required
+            >
+
+            <label>Quantity</label>
+            <input
+                type="number"
+                name="quantity"
+                value="{{ order.quantity }}"
+                min="1"
+                required
+            >
+
+            <button type="submit">Update Order</button>
+
+        </form>
+
+    </section>
+
+</div>
+
+</body>
+</html>

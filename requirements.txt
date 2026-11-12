@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+pymysql
+jinja2
+python-multipart
+pwdlib[argon2]
+pydantic[email]
+#Pydantic validates the data received by our API.
+#For example:
+# - Name should not be empty.
+# - Email should have a valid email format.
+# - Password should have a minimum length.

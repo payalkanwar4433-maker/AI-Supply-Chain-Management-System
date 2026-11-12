@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Shipment Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Shipment Management</h1>
+
+    <!-- Add New Shipment -->
+    <div class="form-container">
+
+        <h2>Add New Shipment</h2>
+
+        <form action="/web/shipments/add" method="POST">
+
+            <label>Shipment Number</label>
+            <input
+                type="text"
+                name="shipment_number"
+                placeholder="Enter shipment number (SHIP001)"
+                required
+            >
+
+            <label>Select Order</label>
+            <select name="order_id" required>
+                <option value="">Select Order</option>
+
+                {% for order in orders %}
+                <option value="{{ order.id }}">
+                    {{ order.order_number }} - {{ order.customer_name }}
+                </option>
+                {% endfor %}
+
+            </select>
+
+            <label>Carrier Name</label>
+            <input
+                type="text"
+                name="carrier_name"
+                placeholder="Enter courier company name"
+                required
+            >
+
+            <label>Tracking Number</label>
+            <input
+                type="text"
+                name="tracking_number"
+                placeholder="Enter tracking number"
+                required
+            >
+
+            <button type="submit">Add Shipment</button>
+
+        </form>
+
+    </div>
+
+    <!-- Shipment List -->
+    <div class="table-container">
+
+        <h2>Shipment List</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Shipment Number</th>
+                    <th>Order Number</th>
+                    <th>Customer</th>
+                    <th>Carrier</th>
+                    <th>Tracking Number</th>
+                    <th>Status</th>
+                    <th>Shipment Date</th>
+                    <th>Delivery Date</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for shipment in shipments %}
+
+                <tr>
+                    <td>{{ shipment.id }}</td>
+
+                    <td>{{ shipment.shipment_number }}</td>
+
+                    <td>{{ shipment.order.order_number }}</td>
+
+                    <td>{{ shipment.order.customer_name }}</td>
+
+                    <td>{{ shipment.carrier_name }}</td>
+
+                    <td>{{ shipment.tracking_number }}</td>
+
+                    
+                    <td>
+                        <form
+                            action="/web/shipments/update-status/{{ shipment.id }}"
+                            method="POST"
+                        >
+
+                            <select name="shipment_status">
+
+                                <option value="Processing"
+                                    {% if shipment.shipment_status == "Processing" %}selected{% endif %}>
+                                    Processing
+                                </option>
+
+                                <option value="Dispatched"
+                                    {% if shipment.shipment_status == "Dispatched" %}selected{% endif %}>
+                                    Dispatched
+                                </option>
+
+                                <option value="In Transit"
+                                    {% if shipment.shipment_status == "In Transit" %}selected{% endif %}>
+                                    In Transit
+                                </option>
+
+                                <option value="Delivered"
+                                    {% if shipment.shipment_status == "Delivered" %}selected{% endif %}>
+                                    Delivered
+                                </option>
+
+                            </select>
+
+                            <button type="submit">Update Status</button>
+
+                        </form>
+                    </td>
+
+
+                    <td>
+                        {{ shipment.shipment_date.strftime('%d-%m-%Y') }}
+                    </td>
+
+                    <td>
+                        {% if shipment.delivery_date %}
+                            {{ shipment.delivery_date.strftime('%d-%m-%Y') }}
+                        {% else %}
+                            Not Delivered
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {% else %}
+
+                <tr>
+                    <td colspan="9">No shipments found.</td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <a href="/dashboard">Back to Dashboard</a>
+
+</div>
+
+</body>
+</html>

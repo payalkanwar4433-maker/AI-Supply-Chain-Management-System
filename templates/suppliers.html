@@ -1,0 +1,91 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supplier Management</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+    <div class="main-content">
+        <header class="dashboard-header">
+            <div>
+                <h1>Supplier Management</h1>
+                <p>Add and manage your suppliers</p>
+            </div>
+            <a href="/dashboard">Back to Dashboard</a>
+        </header>
+
+        {% if message %}
+            <p class="success">{{ message }}</p>
+        {% endif %}
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <section class="module-card">
+            <h2>Add New Supplier</h2>
+
+            <form action="/web/suppliers/add" method="POST">
+                <input type="text" name="supplier_name"
+                       placeholder="Supplier Company Name" required>
+
+                <input type="text" name="contact_person"
+                       placeholder="Contact Person" required>
+
+                <input type="email" name="email"
+                       placeholder="Email Address" required>
+
+                <input type="text" name="phone"
+                       placeholder="Phone Number" required>
+
+                <textarea name="address"
+                          placeholder="Supplier Address"
+                          rows="4" required></textarea>
+
+                <button type="submit">Add Supplier</button>
+            </form>
+        </section>
+
+        <section class="module-section">
+            <h2>Supplier List</h2>
+
+            <div class="module-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Supplier Name</th>
+                            <th>Contact Person</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for supplier in suppliers %}
+                        <tr>
+                            <td>{{ supplier.id }}</td>
+                            <td>{{ supplier.supplier_name }}</td>
+                            <td>{{ supplier.contact_person }}</td>
+                            <td>{{ supplier.email }}</td>
+                            <td>{{ supplier.phone }}</td>
+                            <td>{{ supplier.address }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6">No suppliers added yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+</body>
+</html>
