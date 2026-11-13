@@ -208,7 +208,16 @@ def dashboard(
         "full_name": user.full_name,
         "role_name": role.role_name if role else "Unknown"
     }
+        # Expiry Alerts (next 30 days)
+    today = date.today()
+    expiry_limit = today + timedelta(days=30)
 
+    expiry_batches = db.query(InventoryBatch).filter(
+        InventoryBatch.expiry_date >= today,
+        InventoryBatch.expiry_date <= expiry_limit,
+        InventoryBatch.quantity > 0
+    ).order_by(InventoryBatch.expiry_date.asc()).all()
+    
     return templates.TemplateResponse(
         request=request,
         name="dashboard.html",
@@ -218,7 +227,8 @@ def dashboard(
             "total_products": total_products,
             "total_orders": total_orders,
             "total_shipments": total_shipments,
-            "low_stock_products": low_stock_products
+            "low_stock_products": low_stock_products,
+            "expiry_batches": expiry_batches
         }
     )
 

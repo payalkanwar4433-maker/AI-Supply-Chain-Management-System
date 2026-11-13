@@ -9,150 +9,190 @@
 </head>
 <body>
 
-    <div class="dashboard-layout">
+<div class="dashboard-layout">
 
-        <aside class="sidebar">
-            <h2>SupplyChainAI</h2>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2>SupplyChainAI</h2>
 
-            <nav>
-                <a href="/dashboard" class="active">Dashboard</a>
-                <a href="/suppliers">Suppliers</a>
-                <a href="/products">Products</a>
-                <a href="/inventory">Inventory</a>
-                <a href="/orders">Orders</a>
-                <a href="/shipments">Shipments</a>
-            </nav>
+        <nav>
+            <a href="/dashboard" class="active">Dashboard</a>
+            <a href="/suppliers">Suppliers</a>
+            <a href="/products">Products</a>
+            <a href="/inventory">Inventory</a>
+            <a href="/orders">Orders</a>
+            <a href="/shipments">Shipments</a>
+        </nav>
 
-            <a href="/web/logout" class="logout-link">Logout</a>
-        </aside>
+        <a href="/web/logout" class="logout-link">Logout</a>
+    </aside>
 
-        <main class="main-content">
+    <!-- Main Dashboard -->
+    <main class="main-content">
 
-            <header class="dashboard-header">
-                <div>
-                    <h1>Dashboard</h1>
-                    <p>Supply Chain Management Overview</p>
-                </div>
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Supply Chain Management Overview</p>
+            </div>
 
-                <div class="user-info">
-                    <strong>{{ user.full_name }}</strong>
-                    <span>{{ user.role_name }}</span>
-                </div>
-            </header>
+            <div class="user-info">
+                <strong>{{ user.full_name }}</strong>
+                <span>{{ user.role_name }}</span>
+            </div>
+        </header>
 
-            <section class="welcome-section">
-                <h2>Welcome, {{ user.full_name }}!</h2>
-                <p>Manage your supply chain operations from one place.</p>
-            </section>
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <h2>Welcome, {{ user.full_name }}!</h2>
+            <p>Manage your supply chain operations from one place.</p>
+        </section>
 
-            <!-- Dashboard Summary Cards -->
+        <!-- Summary Cards -->
+        <section class="summary-cards">
 
-            <section class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Suppliers</h3>
+                <p>{{ total_suppliers }}</p>
+            </div>
 
-                <div class="summary-card">
-                    <h3>Total Suppliers</h3>
-                    <p>{{ total_suppliers }}</p>
-                </div>
+            <div class="summary-card">
+                <h3>Total Products</h3>
+                <p>{{ total_products }}</p>
+            </div>
 
-                <div class="summary-card">
-                    <h3>Total Products</h3>
-                    <p>{{ total_products }}</p>
-                </div>
+            <div class="summary-card">
+                <h3>Total Orders</h3>
+                <p>{{ total_orders }}</p>
+            </div>
 
-                <div class="summary-card">
-                    <h3>Total Orders</h3>
-                    <p>{{ total_orders }}</p>
-                </div>
+            <div class="summary-card">
+                <h3>Total Shipments</h3>
+                <p>{{ total_shipments }}</p>
+            </div>
 
-                <div class="summary-card">
-                    <h3>Total Shipments</h3>
-                    <p>{{ total_shipments }}</p>
-                </div>
+        </section>
 
-            </section>
+        <!-- Low Stock Alerts -->
+        <section class="module-section">
+            <h2>Low Stock Alerts</h2>
 
-            <section class="module-section">
-                <h2>Low Stock Alerts</h2>
+            <div class="module-card">
+
+                {% if low_stock_products %}
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>SKU</th>
+                            <th>Available Stock</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for product in low_stock_products %}
+                        <tr>
+                            <td>{{ product.product_name }}</td>
+                            <td>{{ product.sku }}</td>
+                            <td>{{ product.quantity }}</td>
+                            <td>
+                                <span class="stock-low">Low Stock</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% else %}
+                    <p>All products have sufficient stock.</p>
+                {% endif %}
+
+            </div>
+        </section>
+
+        <!-- Expiry Alerts -->
+        <section class="module-section">
+            <h2>Expiry Alerts</h2>
+
+            <div class="module-card">
+
+                {% if expiry_batches %}
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Batch Number</th>
+                            <th>Available Quantity</th>
+                            <th>Expiry Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for batch in expiry_batches %}
+                        <tr>
+                            <td>{{ batch.product.product_name }}</td>
+                            <td>{{ batch.batch_number }}</td>
+                            <td>{{ batch.quantity }}</td>
+                            <td>
+                                {{ batch.expiry_date.strftime('%d-%m-%Y') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                {% else %}
+                    <p>No batches expiring within the next 30 days.</p>
+                {% endif %}
+
+            </div>
+        </section>
+
+        <!-- Supply Chain Modules -->
+        <section class="module-section">
+            <h2>Supply Chain Modules</h2>
+
+            <div class="module-grid">
 
                 <div class="module-card">
-
-                    {% if low_stock_products %}
-
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Product Name</th>
-                                    <th>SKU</th>
-                                    <th>Available Stock</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {% for product in low_stock_products %}
-                                <tr>
-                                    <td>{{ product.product_name }}</td>
-                                    <td>{{ product.sku }}</td>
-                                    <td>{{ product.quantity }}</td>
-                                    <td>
-                                        <span class="stock-low">
-                                            Low Stock
-                                        </span>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-
-                    {% else %}
-
-                        <p>All products have sufficient stock.</p>
-
-                    {% endif %}
-
+                    <h3>Supplier Management</h3>
+                    <p>Add, view and manage suppliers.</p>
+                    <a href="/suppliers">Manage Suppliers</a>
                 </div>
-            </section>
 
-            <section class="module-section">
-                <h2>Supply Chain Modules</h2>
-
-                <div class="module-grid">
-
-                    <div class="module-card">
-                        <h3>Supplier Management</h3>
-                        <p>Add, view and manage suppliers.</p>
-                        <a href="/suppliers">Manage Suppliers</a>
-                    </div>
-
-                    <div class="module-card">
-                        <h3>Product Management</h3>
-                        <p>Manage product details and prices.</p>
-                        <a href="/products">Manage Products</a>
-                    </div>
-
-                    <div class="module-card">
-                        <h3>Inventory Management</h3>
-                        <p>Monitor available stock and inventory.</p>
-                        <a href="/inventory">Manage Inventory</a>
-                    </div>
-
-                    <div class="module-card">
-                        <h3>Order Management</h3>
-                        <p>Create and track customer orders.</p>
-                        <a href="/orders">Manage Orders</a>
-                    </div>
-
-                    <div class="module-card">
-                        <h3>Shipment Management</h3>
-                        <p>Track deliveries and shipment status.</p>
-                        <a href="/shipments">Manage Shipments</a>
-                    </div>
-
+                <div class="module-card">
+                    <h3>Product Management</h3>
+                    <p>Manage product details and prices.</p>
+                    <a href="/products">Manage Products</a>
                 </div>
-            </section>
 
-        </main>
-    </div>
+                <div class="module-card">
+                    <h3>Inventory Management</h3>
+                    <p>Monitor available stock and inventory.</p>
+                    <a href="/inventory">Manage Inventory</a>
+                </div>
+
+                <div class="module-card">
+                    <h3>Order Management</h3>
+                    <p>Create and track customer orders.</p>
+                    <a href="/orders">Manage Orders</a>
+                </div>
+
+                <div class="module-card">
+                    <h3>Shipment Management</h3>
+                    <p>Track deliveries and shipment status.</p>
+                    <a href="/shipments">Manage Shipments</a>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+</div>
 
 </body>
 </html>
