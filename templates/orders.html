@@ -1,69 +1,119 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
 
-<div class="container">
+<div class="main-content">
 
-    <h1>Order Management</h1>
+    <!-- Page Header -->
+    <header class="dashboard-header">
+        <div>
+            <h1>Order Management</h1>
+            <p>Manage individual product and combo orders</p>
+        </div>
 
-    <!-- Add New Order -->
-    <div class="form-container">
+        <a href="/dashboard">Back to Dashboard</a>
+    </header>
 
-        <h2>Add New Order</h2>
+    <!-- Create New Order -->
+    <section class="module-card">
+
+        <h2>Create New Order</h2>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
 
         <form action="/web/orders/add" method="POST">
 
-            <label>Order Number</label>
             <input
                 type="text"
                 name="order_number"
-                placeholder="Enter order number (ORD001)"
+                placeholder="Enter Order Number"
                 required
             >
 
-            <label>Customer Name</label>
             <input
                 type="text"
                 name="customer_name"
-                placeholder="Enter customer name"
+                placeholder="Enter Customer Name"
                 required
             >
 
-            <label>Select Product</label>
-            <select name="product_id" required>
-                <option value="">Select Product</option>
+            <!-- Order Type -->
+            <label for="item_type">Select Order Type</label>
 
-                {% for product in products %}
-                <option value="{{ product.id }}">
-                    {{ product.product_name }} - ₹{{ product.unit_price }}
-                </option>
-                {% endfor %}
-
+            <select name="item_type" id="item_type" required>
+                <option value="">Select Order Type</option>
+                <option value="product">Individual Product</option>
+                <option value="bundle">Combo Product</option>
             </select>
 
-            <label>Quantity</label>
+            <!-- Individual Product -->
+            <div id="product_section" style="display: none;">
+
+                <label for="product_id">Select Individual Product</label>
+
+                <select name="product_id" id="product_id" disabled>
+
+                    <option value="">Select Product</option>
+
+                    {% for product in products %}
+                        <option value="{{ product.id }}">
+                            {{ product.product_name }} ({{ product.sku }})
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <!-- Combo Product -->
+            <div id="bundle_section" style="display: none;">
+
+                <label for="bundle_id">Select Combo Product</label>
+
+                <select name="bundle_id" id="bundle_id" disabled>
+
+                    <option value="">Select Combo</option>
+
+                    {% for bundle in bundles %}
+                        <option value="{{ bundle.id }}">
+                            {{ bundle.bundle_name }} ({{ bundle.bundle_sku }})
+                        </option>
+                    {% endfor %}
+
+                </select>
+
+            </div>
+
+            <!-- Quantity -->
+            <label for="quantity">Quantity</label>
+
             <input
                 type="number"
                 name="quantity"
+                id="quantity"
+                placeholder="Enter Quantity"
                 min="1"
-                placeholder="Enter quantity"
                 required
             >
 
-            <button type="submit">Add Order</button>
+            <button type="submit">Create Order</button>
 
         </form>
 
-    </div>
+    </section>
 
     <!-- Orders List -->
-    <div class="table-container">
+    <section class="module-card">
 
         <h2>Orders List</h2>
 
@@ -74,7 +124,8 @@
                     <th>ID</th>
                     <th>Order Number</th>
                     <th>Customer</th>
-                    <th>Product</th>
+                    <th>Order Type</th>
+                    <th>Item Name</th>
                     <th>Quantity</th>
                     <th>Unit Price</th>
                     <th>Total Amount</th>
@@ -89,13 +140,30 @@
                 {% for order in orders %}
 
                 <tr>
+
                     <td>{{ order.id }}</td>
 
                     <td>{{ order.order_number }}</td>
 
                     <td>{{ order.customer_name }}</td>
 
-                    <td>{{ order.product.product_name }}</td>
+                    <td>
+                        {% if order.bundle_id %}
+                            Combo Product
+                        {% else %}
+                            Individual Product
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if order.bundle %}
+                            {{ order.bundle.bundle_name }}
+                        {% elif order.product %}
+                            {{ order.product.product_name }}
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </td>
 
                     <td>{{ order.quantity }}</td>
 
@@ -103,7 +171,6 @@
 
                     <td>₹{{ order.total_amount }}</td>
 
-                    <!-- Update Order Status -->
                     <td>
                         <form
                             action="/web/orders/update-status/{{ order.id }}"
@@ -111,6 +178,7 @@
                         >
 
                             <select name="status">
+
                                 <option value="Pending"
                                     {% if order.status == "Pending" %}selected{% endif %}>
                                     Pending
@@ -130,6 +198,7 @@
                                     {% if order.status == "Delivered" %}selected{% endif %}>
                                     Delivered
                                 </option>
+
                             </select>
 
                             <button type="submit">Update</button>
@@ -138,23 +207,32 @@
                     </td>
 
                     <td>
-                        {{ order.order_date.strftime('%d-%m-%Y') }}
+                        {{ order.order_date.strftime('%d-%m-%Y') if order.order_date else '' }}
                     </td>
 
-                    <!-- Edit Order -->
                     <td>
-                        <a href="/web/orders/edit/{{ order.id }}">Edit</a>
 
-                        <form action="/web/orders/delete/{{ order.id }}" method="POST">
-                            <button type="submit" class="delete-btn">Delete</button>
+                        {% if order.product_id %}
+                            <a href="/web/orders/edit/{{ order.id }}">Edit</a>
+                        {% else %}
+                            <span>Combo Order</span>
+                        {% endif %}
+
+                        <form
+                            action="/web/orders/delete/{{ order.id }}"
+                            method="POST"
+                        >
+                            <button type="submit">Delete</button>
                         </form>
+
                     </td>
+
                 </tr>
 
                 {% else %}
 
                 <tr>
-                    <td colspan="10">No orders found.</td>
+                    <td colspan="11">No orders available.</td>
                 </tr>
 
                 {% endfor %}
@@ -163,11 +241,78 @@
 
         </table>
 
-    </div>
+    </section>
 
     <a href="/dashboard">Back to Dashboard</a>
 
 </div>
+
+<!-- Show dropdown according to selected order type -->
+<script>
+
+    const itemType = document.getElementById("item_type");
+
+    const productSection = document.getElementById("product_section");
+    const bundleSection = document.getElementById("bundle_section");
+
+    const productSelect = document.getElementById("product_id");
+    const bundleSelect = document.getElementById("bundle_id");
+
+    function updateOrderFields() {
+
+        if (itemType.value === "product") {
+
+            productSection.style.display = "block";
+            bundleSection.style.display = "none";
+
+            productSelect.disabled = false;
+            productSelect.required = true;
+            productSelect.value = "";
+
+            bundleSelect.disabled = true;
+            bundleSelect.required = false;
+            bundleSelect.value = "";
+
+        }
+
+        else if (itemType.value === "bundle") {
+
+            bundleSection.style.display = "block";
+            productSection.style.display = "none";
+
+            bundleSelect.disabled = false;
+            bundleSelect.required = true;
+            bundleSelect.value = "";
+
+            productSelect.disabled = true;
+            productSelect.required = false;
+            productSelect.value = "";
+
+        }
+
+        else {
+
+            productSection.style.display = "none";
+            bundleSection.style.display = "none";
+
+            productSelect.disabled = true;
+            bundleSelect.disabled = true;
+
+            productSelect.required = false;
+            bundleSelect.required = false;
+
+            productSelect.value = "";
+            bundleSelect.value = "";
+
+        }
+
+    }
+
+    itemType.addEventListener("change", updateOrderFields);
+
+    updateOrderFields();
+
+</script>
 
 </body>
 </html>

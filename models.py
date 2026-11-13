@@ -70,14 +70,25 @@ class InventoryBatch(Base):
 
     product = relationship("Product", back_populates="batches")
 
-
 class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
     order_number = Column(String(50), unique=True, nullable=False)
     customer_name = Column(String(150), nullable=False)
-    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+
+    product_id = Column(
+        Integer,
+        ForeignKey("products.id"),
+        nullable=True
+    )
+
+    bundle_id = Column(
+        Integer,
+        ForeignKey("product_bundles.id"),
+        nullable=True
+    )
+
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_amount = Column(Numeric(10, 2), nullable=False)
@@ -85,13 +96,13 @@ class Order(Base):
     order_date = Column(DateTime, default=datetime.utcnow)
 
     product = relationship("Product")
+    bundle = relationship("ProductBundle")
+
     batch_allocations = relationship(
         "OrderBatchAllocation",
         back_populates="order",
         cascade="all, delete-orphan"
     )
-
-
 class OrderBatchAllocation(Base):
     __tablename__ = "order_batch_allocations"
 
@@ -117,3 +128,38 @@ class Shipment(Base):
     delivery_date = Column(DateTime, nullable=True)
 
     order = relationship("Order")
+
+
+class ProductBundle(Base):
+    __tablename__ = "product_bundles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bundle_name = Column(String(150), nullable=False)
+    bundle_sku = Column(String(100), unique=True, nullable=False)
+    bundle_price = Column(Numeric(10, 2), nullable=False)
+
+    items = relationship(
+        "BundleItem",
+        cascade="all, delete-orphan"
+    )
+
+class BundleItem(Base):
+    __tablename__ = "bundle_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    bundle_id = Column(
+        Integer,
+        ForeignKey("product_bundles.id"),
+        nullable=False
+    )
+
+    product_id = Column(
+        Integer,
+        ForeignKey("products.id"),
+        nullable=False
+    )
+
+    quantity = Column(Integer, nullable=False)
+
+    product = relationship("Product")

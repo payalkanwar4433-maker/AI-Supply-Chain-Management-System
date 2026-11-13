@@ -3,11 +3,12 @@ from fastapi import APIRouter, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+from typing import List
 
 from database import get_db
 from datetime import datetime, date, timedelta
 from sqlalchemy import case
-from models import User, Role, Supplier, Product, InventoryBatch, Order, OrderBatchAllocation, Shipment
+from models import User, Role, Supplier, Product, InventoryBatch, Order, OrderBatchAllocation, Shipment, ProductBundle, BundleItem
 from auth import (
     hash_password,
     verify_password,
@@ -642,6 +643,88 @@ def inventory_page(
     return _inventory_template(request, db)
 
 
+
+@router.post("/web/inventory/add")
+def add_inventory_batch(
+    request: Request,
+    product_id: int = Form(...),
+    batch_number: str = Form(...),
+    quantity: int = Form(...),
+    received_date: str = Form(""),
+    expiry_date: str = Form(""),
+    db: Session = Depends(get_db)
+):
+    token = request.cookies.get("access_token")
+    if not token or verify_access_token(token) is None:
+        return RedirectResponse("/login", status_code=303)
+
+    product = db.query(Product).filter(
+        Product.id == product_id
+    ).first()
+
+    if product is None:
+        return _inventory_template(request, db, "Please select a valid product.")
+
+    batch_number = batch_number.strip()
+
+    if not batch_number:
+        return _inventory_template(request, db, "Batch number is required.")
+
+    if quantity <= 0:
+        return _inventory_template(request, db, "Quantity must be greater than zero.")
+
+    duplicate = db.query(InventoryBatch).filter(
+        InventoryBatch.batch_number == batch_number
+    ).first()
+
+    if duplicate:
+        return _inventory_template(request, db, "Batch number already exists.")
+
+    try:
+        received_day = (
+            date.fromisoformat(received_date)
+            if received_date else date.today()
+        )
+
+        expiry_day = (
+            date.fromisoformat(expiry_date)
+            if expiry_date else None
+        )
+
+    except ValueError:
+        return _inventory_template(request, db, "Please enter valid dates.")
+
+    # Expiry date is optional
+    if expiry_day is not None and expiry_day < received_day:
+        return _inventory_template(
+            request, db,
+            "Expiry date cannot be earlier than received date."
+        )
+
+    batch = InventoryBatch(
+        product_id=product_id,
+        batch_number=batch_number,
+        quantity=quantity,
+        received_date=datetime.combine(
+            received_day, datetime.min.time()
+        ),
+        expiry_date=expiry_day
+    )
+
+    try:
+        db.add(batch)
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        return _inventory_template(
+            request, db,
+            "Could not save this batch. Check the batch details."
+        )
+
+    return RedirectResponse("/inventory", status_code=303)
+
+
 @router.post("/web/inventory/add")
 def add_inventory_batch(
     request: Request,
@@ -661,6 +744,7 @@ def add_inventory_batch(
         return _inventory_template(request, db, "Please select a valid product.")
 
     batch_number = batch_number.strip()
+
     if not batch_number:
         return _inventory_template(request, db, "Batch number is required.")
 
@@ -670,6 +754,7 @@ def add_inventory_batch(
     duplicate = db.query(InventoryBatch).filter(
         InventoryBatch.batch_number == batch_number
     ).first()
+
     if duplicate:
         return _inventory_template(request, db, "Batch number already exists.")
 
@@ -679,16 +764,7 @@ def add_inventory_batch(
     except ValueError:
         return _inventory_template(request, db, "Please enter valid dates.")
 
-    if product.has_expiry and expiry_day is None:
-        return _inventory_template(
-            request, db, "Expiry date is required for this product."
-        )
-
-    if not product.has_expiry and expiry_day is not None:
-        return _inventory_template(
-            request, db, "This product is not expiry-tracked. Leave expiry date empty."
-        )
-
+    # Expiry date is optional
     if expiry_day is not None and expiry_day < received_day:
         return _inventory_template(
             request, db, "Expiry date cannot be earlier than received date."
@@ -707,33 +783,11 @@ def add_inventory_batch(
         db.commit()
     except Exception:
         db.rollback()
-        return _inventory_template(request, db, "Could not save this batch. Check the batch details.")
+        return _inventory_template(
+            request, db, "Could not save this batch. Check the batch details."
+        )
 
     return RedirectResponse("/inventory", status_code=303)
-
-
-@router.post("/web/inventory/update/{batch_id}")
-def update_inventory_batch(
-    batch_id: int,
-    request: Request,
-    quantity: int = Form(...),
-    db: Session = Depends(get_db)
-):
-    token = request.cookies.get("access_token")
-    if not token or verify_access_token(token) is None:
-        return RedirectResponse("/login", status_code=303)
-
-    batch = db.query(InventoryBatch).filter(
-        InventoryBatch.id == batch_id
-    ).first()
-
-    if batch is None or quantity < 0:
-        return RedirectResponse("/inventory", status_code=303)
-
-    batch.quantity = quantity
-    db.commit()
-    return RedirectResponse("/inventory", status_code=303)
-
 
 @router.post("/web/inventory/delete/{batch_id}")
 def delete_inventory_batch(
@@ -766,36 +820,29 @@ def delete_inventory_batch(
 
 
 def _allocate_batches(db: Session, product: Product, order: Order, quantity: int):
-    """Deduct stock from available batches using FEFO, otherwise FIFO."""
+    """Deduct eligible stock using FIFO."""
+
     today = date.today()
 
-    query = db.query(InventoryBatch).filter(
+    batches = db.query(InventoryBatch).filter(
         InventoryBatch.product_id == product.id,
-        InventoryBatch.quantity > 0
-    )
-
-    if product.has_expiry:
-        query = query.filter(
-            InventoryBatch.expiry_date.isnot(None),
-            InventoryBatch.expiry_date >= today
+        InventoryBatch.quantity > 0,
+        (
+            InventoryBatch.expiry_date.is_(None) |
+            (InventoryBatch.expiry_date >= today)
         )
-        batches = query.order_by(
-            InventoryBatch.expiry_date.asc(),
-            InventoryBatch.received_date.asc(),
-            InventoryBatch.id.asc()
-        ).with_for_update().all()
-    else:
-        query = query.filter(InventoryBatch.expiry_date.is_(None))
-        batches = query.order_by(
-            InventoryBatch.received_date.asc(),
-            InventoryBatch.id.asc()
-        ).with_for_update().all()
+    ).order_by(
+        InventoryBatch.received_date.asc(),
+        InventoryBatch.id.asc()
+    ).with_for_update().all()
 
     available = sum(batch.quantity for batch in batches)
+
     if available < quantity:
         return False
 
     remaining = quantity
+
     for batch in batches:
         if remaining <= 0:
             break
@@ -803,17 +850,15 @@ def _allocate_batches(db: Session, product: Product, order: Order, quantity: int
         take = min(batch.quantity, remaining)
         batch.quantity -= take
 
-        allocation = OrderBatchAllocation(
+        db.add(OrderBatchAllocation(
             order_id=order.id,
             batch_id=batch.id,
             quantity=take
-        )
-        db.add(allocation)
+        ))
+
         remaining -= take
 
     return remaining == 0
-
-
 def _restore_order_batches(db: Session, order: Order):
     """Restore quantities to the exact batches previously used by this order."""
     allocations = db.query(OrderBatchAllocation).filter(
@@ -837,6 +882,7 @@ def _restore_order_batches(db: Session, order: Order):
     return True
 
 
+
 @router.get("/orders")
 def orders_page(
     request: Request,
@@ -844,17 +890,24 @@ def orders_page(
     error: str = None
 ):
     token = request.cookies.get("access_token")
+
     if not token or verify_access_token(token) is None:
         return RedirectResponse("/login", status_code=303)
 
     products = db.query(Product).all()
-    orders = db.query(Order).order_by(Order.id.desc()).all()
+
+    bundles = db.query(ProductBundle).all()
+
+    orders = db.query(Order).order_by(
+        Order.id.desc()
+    ).all()
 
     return templates.TemplateResponse(
         request=request,
         name="orders.html",
         context={
             "products": products,
+            "bundles": bundles,
             "orders": orders,
             "error": error
         }
@@ -866,56 +919,140 @@ def add_order(
     request: Request,
     order_number: str = Form(...),
     customer_name: str = Form(...),
-    product_id: int = Form(...),
+    item_type: str = Form(...),
     quantity: int = Form(...),
+    product_id: int = Form(None),
+    bundle_id: int = Form(None),
     db: Session = Depends(get_db)
 ):
     token = request.cookies.get("access_token")
+
     if not token or verify_access_token(token) is None:
         return RedirectResponse("/login", status_code=303)
 
     if quantity <= 0:
-        return RedirectResponse("/orders?error=Quantity+must+be+greater+than+zero", status_code=303)
+        return RedirectResponse(
+            "/orders?error=Quantity+must+be+greater+than+zero",
+            status_code=303
+        )
 
     existing_order = db.query(Order).filter(
         Order.order_number == order_number
     ).first()
+
     if existing_order:
-        return RedirectResponse("/orders?error=Order+number+already+exists", status_code=303)
+        return RedirectResponse(
+            "/orders?error=Order+number+already+exists",
+            status_code=303
+        )
 
-    product = db.query(Product).filter(Product.id == product_id).first()
-    if product is None:
-        return RedirectResponse("/orders?error=Product+not+found", status_code=303)
-
-    new_order = Order(
-        order_number=order_number,
-        customer_name=customer_name,
-        product_id=product_id,
-        quantity=quantity,
-        unit_price=product.unit_price,
-        total_amount=product.unit_price * quantity,
-        status="Pending"
-    )
+    new_order = None
 
     try:
-        db.add(new_order)
-        db.flush()  # Get the new order ID before saving batch allocations.
+        if item_type == "product":
 
-        if not _allocate_batches(db, product, new_order, quantity):
-            db.rollback()
+            product = db.query(Product).filter(
+                Product.id == product_id
+            ).first()
+
+            if product is None:
+                return RedirectResponse(
+                    "/orders?error=Product+not+found",
+                    status_code=303
+                )
+
+            new_order = Order(
+                order_number=order_number,
+                customer_name=customer_name,
+                product_id=product.id,
+                bundle_id=None,
+                quantity=quantity,
+                unit_price=product.unit_price,
+                total_amount=product.unit_price * quantity,
+                status="Pending"
+            )
+
+            db.add(new_order)
+            db.flush()
+
+            if not _allocate_batches(
+                db, product, new_order, quantity
+            ):
+                db.rollback()
+                return RedirectResponse(
+                    "/orders?error=Insufficient+product+stock",
+                    status_code=303
+                )
+
+        elif item_type == "bundle":
+
+            bundle = db.query(ProductBundle).filter(
+                ProductBundle.id == bundle_id
+            ).first()
+
+            if bundle is None:
+                return RedirectResponse(
+                    "/orders?error=Combo+not+found",
+                    status_code=303
+                )
+
+            new_order = Order(
+                order_number=order_number,
+                customer_name=customer_name,
+                product_id=None,
+                bundle_id=bundle.id,
+                quantity=quantity,
+                unit_price=bundle.bundle_price,
+                total_amount=bundle.bundle_price * quantity,
+                status="Pending"
+            )
+
+            db.add(new_order)
+            db.flush()
+
+            for item in bundle.items:
+
+                required_quantity = item.quantity * quantity
+
+                product = db.query(Product).filter(
+                    Product.id == item.product_id
+                ).first()
+
+                if product is None:
+                    db.rollback()
+                    return RedirectResponse(
+                        "/orders?error=Combo+product+not+found",
+                        status_code=303
+                    )
+
+                if not _allocate_batches(
+                    db,
+                    product,
+                    new_order,
+                    required_quantity
+                ):
+                    db.rollback()
+                    return RedirectResponse(
+                        "/orders?error=Insufficient+combo+stock",
+                        status_code=303
+                    )
+
+        else:
             return RedirectResponse(
-                "/orders?error=Insufficient+non-expired+batch+stock",
+                "/orders?error=Invalid+item+type",
                 status_code=303
             )
 
         db.commit()
+
     except Exception:
         db.rollback()
-        return RedirectResponse("/orders?error=Could+not+place+order", status_code=303)
+        return RedirectResponse(
+            "/orders?error=Could+not+place+order",
+            status_code=303
+        )
 
     return RedirectResponse("/orders", status_code=303)
-
-
 @router.post("/web/orders/update-status/{order_id}")
 def update_order_status(
     order_id: int,
@@ -1143,7 +1280,8 @@ def update_shipment_status(
 
     if shipment_status == "Delivered":
         shipment.delivery_date = datetime.utcnow()
-
+    else:
+        shipment.delivery_date = None
     db.commit()
 
     return RedirectResponse("/shipments", status_code=303)
@@ -1207,3 +1345,113 @@ def edit_shipment(
     db.commit()
 
     return RedirectResponse("/shipments", status_code=303)
+
+@router.get("/bundles", response_class=HTMLResponse)
+def bundles_page(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    token = request.cookies.get("access_token")
+
+    if not token or verify_access_token(token) is None:
+        return RedirectResponse("/login", status_code=303)
+
+    products = db.query(Product).all()
+
+    bundles = db.query(ProductBundle).order_by(
+        ProductBundle.id.desc()
+    ).all()
+
+    return templates.TemplateResponse(
+        request=request,
+        name="bundles.html",
+        context={
+            "products": products,
+            "bundles": bundles,
+            "error": None
+        }
+    )
+@router.post("/web/bundles/add")
+def add_bundle(
+    request: Request,
+    bundle_name: str = Form(...),
+    bundle_sku: str = Form(...),
+    bundle_price: float = Form(...),
+    product_ids: List[int] = Form(...),
+    quantities: List[int] = Form(...),
+    db: Session = Depends(get_db)
+):
+    token = request.cookies.get("access_token")
+
+    if not token or verify_access_token(token) is None:
+        return RedirectResponse("/login", status_code=303)
+
+    products = db.query(Product).all()
+    bundles = db.query(ProductBundle).all()
+
+    def show_error(message):
+        return templates.TemplateResponse(
+            request=request,
+            name="bundles.html",
+            context={
+                "products": products,
+                "bundles": bundles,
+                "error": message
+            },
+            status_code=400
+        )
+
+    if bundle_price <= 0:
+        return show_error("Combo price must be greater than zero.")
+
+    if len(product_ids) != len(quantities):
+        return show_error("Please select valid products and quantities.")
+
+    if len(set(product_ids)) != len(product_ids):
+        return show_error("Please select each product only once.")
+
+    if len(product_ids) < 2:
+        return show_error("A combo must contain at least two products.")
+
+    if any(quantity <= 0 for quantity in quantities):
+        return show_error("Product quantities must be greater than zero.")
+
+    existing_bundle = db.query(ProductBundle).filter(
+        ProductBundle.bundle_sku == bundle_sku
+    ).first()
+
+    if existing_bundle:
+        return show_error("Combo SKU already exists.")
+
+    selected_products = db.query(Product).filter(
+        Product.id.in_(product_ids)
+    ).all()
+
+    if len(selected_products) != len(product_ids):
+        return show_error("One or more selected products do not exist.")
+
+    try:
+        new_bundle = ProductBundle(
+            bundle_name=bundle_name,
+            bundle_sku=bundle_sku,
+            bundle_price=bundle_price
+        )
+
+        db.add(new_bundle)
+        db.flush()
+
+        for product_id, quantity in zip(product_ids, quantities):
+            bundle_item = BundleItem(
+                bundle_id=new_bundle.id,
+                product_id=product_id,
+                quantity=quantity
+            )
+            db.add(bundle_item)
+
+        db.commit()
+
+    except Exception:
+        db.rollback()
+        return show_error("Could not save the combo. Please check the details.")
+
+    return RedirectResponse("/bundles", status_code=303)
