@@ -1,126 +1,457 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Management</title>
+    <title>SupplyChain ERP - Product Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-    <div class="main-content">
+<div class="dashboard-layout">
 
+    <!-- Compact Dark Navy Sidebar -->
+    <aside class="sidebar">
+        <a href="/dashboard" class="sidebar-brand">
+            <div class="sidebar-brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                </svg>
+            </div>
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-title">SupplyChain ERP</span>
+                <span class="sidebar-brand-badge">Enterprise v2.5</span>
+            </div>
+        </a>
+
+        <div class="nav-section-label">Core Modules</div>
+        <nav>
+            <a href="/dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="9" rx="1"></rect>
+                    <rect x="14" y="3" width="7" height="5" rx="1"></rect>
+                    <rect x="14" y="12" width="7" height="9" rx="1"></rect>
+                    <rect x="3" y="16" width="7" height="5" rx="1"></rect>
+                </svg>
+                <span>Dashboard</span>
+            </a>
+            <a href="/suppliers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 21h18"></path>
+                    <path d="M19 21v-4"></path>
+                    <path d="M19 17a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v4"></path>
+                    <rect x="9" y="3" width="6" height="8" rx="1"></rect>
+                    <path d="M9 7h6"></path>
+                </svg>
+                <span>Suppliers</span>
+            </a>
+            <a href="/products" class="active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                </svg>
+                <span>Products</span>
+            </a>
+            <a href="/inventory">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <path d="m3.3 7 8.7 5 8.7-5"></path>
+                    <path d="M12 22V12"></path>
+                </svg>
+                <span>Inventory</span>
+            </a>
+            <a href="/orders">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path>
+                    <path d="M3 6h18"></path>
+                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                </svg>
+                <span>Orders</span>
+            </a>
+            <a href="/shipments">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="3" width="15" height="13" rx="1"></rect>
+                    <polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon>
+                    <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                    <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                </svg>
+                <span>Shipments</span>
+            </a>
+            <a href="/bundles">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="8" height="8" rx="2"></rect>
+                    <rect x="13" y="3" width="8" height="8" rx="2"></rect>
+                    <rect x="3" y="13" width="8" height="8" rx="2"></rect>
+                    <rect x="13" y="13" width="8" height="8" rx="2"></rect>
+                </svg>
+                <span>Combo Products</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="/web/logout" class="logout-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Workspace -->
+    <main class="main-content">
+
+        <!-- Compact Page Heading -->
         <header class="dashboard-header">
             <div>
+                <div class="erp-breadcrumb">
+                    <a href="/dashboard">Dashboard</a>
+                    <span class="sep">/</span>
+                    <span>Master Data</span>
+                    <span class="sep">/</span>
+                    <span>Products</span>
+                </div>
                 <h1>Product Management</h1>
-                <p>Add and manage your products</p>
+                <p>Catalog registry, item master data, SKU configuration, and inventory rotation rules</p>
             </div>
-            <a href="/dashboard">Back to Dashboard</a>
+
+            <div class="header-actions">
+                <button type="button" id="toggleAddProductBtn" class="btn btn-primary" onclick="toggleAddProductPanel()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    <span>Add Product</span>
+                </button>
+                <a href="/dashboard" class="back-link">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="19" y1="12" x2="5" y2="12"></line>
+                        <polyline points="12 19 5 12 12 5"></polyline>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+            </div>
         </header>
 
-        <section class="module-card">
-            <h2>Add New Product</h2>
+        <!-- Compact Add Product Form Panel (Collapsible) -->
+        <section id="addProductCard" class="erp-form-card" style="display: {% if error %}block{% else %}none{% endif %};">
+            <div class="erp-card-header">
+                <span class="erp-card-title">New Product Entry</span>
+                <button type="button" class="btn btn-xs btn-outline" onclick="toggleAddProductPanel(false)" title="Close Form">
+                    &times; Close
+                </button>
+            </div>
 
             {% if error %}
                 <p class="error">{{ error }}</p>
             {% endif %}
 
             <form action="/web/products/add" method="POST">
+                <div class="erp-form-grid">
 
-                <input type="text" name="product_name"
-                       placeholder="Product Name" required>
+                    <div class="erp-form-group">
+                        <label for="product_name">Product Name *</label>
+                        <input type="text" id="product_name" name="product_name"
+                               placeholder="e.g. Hex Head Cap Screw M8" required>
+                    </div>
 
-                <input type="text" name="sku"
-                       placeholder="Product SKU" required>
+                    <div class="erp-form-group">
+                        <label for="sku">Product SKU *</label>
+                        <input type="text" id="sku" name="sku"
+                               placeholder="e.g. FAST-SCR-008" required>
+                    </div>
 
-                <textarea name="description"
-                          placeholder="Product Description"
-                          rows="3"></textarea>
+                    <div class="erp-form-group">
+                        <label for="category">Product Category *</label>
+                        <input type="text" id="category" name="category"
+                               placeholder="e.g. Fasteners & Hardware" required>
+                    </div>
 
-                <input type="text" name="category"
-                       placeholder="Product Category" required>
+                    <div class="erp-form-group">
+                        <label for="unit_price">Unit Price ($) *</label>
+                        <input type="number" id="unit_price" name="unit_price"
+                               placeholder="0.00"
+                               min="0.01" step="0.01" required>
+                    </div>
 
-                <input type="number" name="unit_price"
-                       placeholder="Unit Price"
-                       min="0.01" step="0.01" required>
+                    <div class="erp-form-group">
+                        <label for="supplier_id">Assigned Supplier *</label>
+                        <select id="supplier_id" name="supplier_id" required>
+                            <option value="">Select Supplier</option>
+                            {% for supplier in suppliers %}
+                                <option value="{{ supplier.id }}">
+                                    {{ supplier.supplier_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <select name="supplier_id" required>
-                    <option value="">Select Supplier</option>
-                    {% for supplier in suppliers %}
-                        <option value="{{ supplier.id }}">
-                            {{ supplier.supplier_name }}
-                        </option>
-                    {% endfor %}
-                </select>
+                    <div class="erp-form-group">
+                        <label for="has_expiry">Inventory Tracking Rule *</label>
+                        <select id="has_expiry" name="has_expiry" required>
+                            <option value="false">No - FIFO (Standard Stock)</option>
+                            <option value="true">Yes - FEFO (Expiry Tracking)</option>
+                        </select>
+                    </div>
 
-                <label>Expiry Tracking</label>
-                <select name="has_expiry" required>
-                    <option value="false">No - FIFO</option>
-                    <option value="true">Yes - FEFO</option>
-                </select>
+                    <div class="erp-form-group col-span-full">
+                        <label for="description">Product Description</label>
+                        <textarea id="description" name="description"
+                                  placeholder="Enter technical specifications, storage prerequisites, or catalog notes..."
+                                  rows="2"></textarea>
+                    </div>
 
-                <button type="submit">Add Product</button>
+                </div>
 
+                <div style="display: flex; gap: 8px; margin-top: 10px;">
+                    <button type="submit" class="btn btn-primary">Save Product</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleAddProductPanel(false)">Cancel</button>
+                </div>
             </form>
         </section>
 
-        <section class="module-card">
-            <h2>Product List</h2>
+        <!-- Search & Filter Toolbar -->
+        <div class="erp-toolbar">
+            <div class="erp-toolbar-left">
+                <div class="erp-search-group">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="productSearchInput" class="erp-search-input"
+                           placeholder="Search by name, SKU, category, supplier..."
+                           oninput="applyProductFilters()">
+                </div>
 
+                <select id="productCategoryFilter" class="erp-filter-select" onchange="applyProductFilters()">
+                    <option value="">All Categories</option>
+                </select>
+
+                <select id="productExpiryFilter" class="erp-filter-select" onchange="applyProductFilters()">
+                    <option value="">All Tracking Rules</option>
+                    <option value="FEFO">FEFO (Expiry)</option>
+                    <option value="FIFO">FIFO (Standard)</option>
+                </select>
+
+                <button type="button" class="btn btn-sm btn-outline" onclick="resetProductFilters()">
+                    Reset
+                </button>
+            </div>
+
+            <div class="erp-toolbar-right">
+                <span id="productsCounterBadge" class="erp-count-badge">
+                    {{ products|length }} Products
+                </span>
+            </div>
+        </div>
+
+        <!-- Product List in a Professional Table -->
+        <div class="erp-table-responsive" style="border-top-left-radius: 0; border-top-right-radius: 0; border-top: none;">
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th style="width: 70px;">ID</th>
                         <th>Product Name</th>
-                        <th>SKU</th>
-                        <th>Category</th>
-                        <th>Price</th>
-                        <th>Supplier</th>
-                        <th>Expiry Tracking</th>
-                        <th>Action</th>
+                        <th style="width: 150px;">SKU</th>
+                        <th style="width: 140px;">Category</th>
+                        <th style="width: 110px;" class="text-right">Price</th>
+                        <th style="width: 170px;">Supplier</th>
+                        <th style="width: 130px;">Tracking</th>
+                        <th style="width: 120px;" class="text-right">Actions</th>
                     </tr>
                 </thead>
 
-                <tbody>
+                <tbody id="productsTableBody">
                     {% for product in products %}
-                    <tr>
-                        <td>{{ product.id }}</td>
-                        <td>{{ product.product_name }}</td>
-                        <td>{{ product.sku }}</td>
-                        <td>{{ product.category }}</td>
-                        <td>{{ product.unit_price }}</td>
-                        <td>{{ product.supplier.supplier_name }}</td>
+                    <tr class="product-table-row"
+                        data-name="{{ product.product_name|lower }}"
+                        data-sku="{{ product.sku|lower }}"
+                        data-category="{{ product.category }}"
+                        data-supplier="{{ product.supplier.supplier_name|lower if product.supplier else '' }}"
+                        data-expiry="{% if product.has_expiry %}FEFO{% else %}FIFO{% endif %}">
+
                         <td>
-                            {% if product.has_expiry %}
-                                FEFO
-                            {% else %}
-                                FIFO
-                            {% endif %}
+                            <span class="erp-id-badge">#{{ product.id }}</span>
                         </td>
 
                         <td>
-                            <a href="/web/products/edit/{{ product.id }}">
-                                Edit
+                            <div class="product-name-cell">
+                                <span class="cell-primary">{{ product.product_name }}</span>
+                                {% if product.description %}
+                                    <span class="product-desc-muted">{{ product.description }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="sku-badge">{{ product.sku }}</span>
+                        </td>
+
+                        <td>
+                            <span class="category-pill">{{ product.category }}</span>
+                        </td>
+
+                        <td class="font-mono text-right">
+                            ${{ product.unit_price }}
+                        </td>
+
+                        <td>
+                            {{ product.supplier.supplier_name if product.supplier else '—' }}
+                        </td>
+
+                        <td>
+                            {% if product.has_expiry %}
+                                <span class="badge badge-teal">FEFO (Expiry)</span>
+                            {% else %}
+                                <span class="badge badge-neutral">FIFO (Standard)</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="actions-cell">
+                            <a href="/web/products/edit/{{ product.id }}" class="btn-action btn-edit" title="Edit Product">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                <span>Edit</span>
                             </a>
 
-                            <form action="/web/products/delete/{{ product.id }}"
-                                  method="POST">
-                                <button type="submit">Delete</button>
+                            <form action="/web/products/delete/{{ product.id }}" method="POST">
+                                <button type="submit" class="btn-action btn-delete" title="Delete Product">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    </svg>
+                                    <span>Delete</span>
+                                </button>
                             </form>
                         </td>
                     </tr>
 
                     {% else %}
                     <tr>
-                        <td colspan="8">No products added yet.</td>
+                        <td colspan="8" class="empty-table-cell">No products added yet. Click &ldquo;Add Product&rdquo; above to record the first catalog item.</td>
                     </tr>
                     {% endfor %}
+
+                    <tr id="noProductsMatchRow" style="display: none;">
+                        <td colspan="8" class="empty-table-cell">No matching products found matching your search and filter criteria.</td>
+                    </tr>
                 </tbody>
             </table>
-        </section>
+        </div>
 
-    </div>
+    </main>
+
+</div>
+
+<!-- Client-side Toolbar Search & Filter Logic (No external libraries, zero popups) -->
+<script>
+    function toggleAddProductPanel(forceState) {
+        var panel = document.getElementById('addProductCard');
+        if (!panel) return;
+        if (typeof forceState === 'boolean') {
+            panel.style.display = forceState ? 'block' : 'none';
+        } else {
+            panel.style.display = (panel.style.display === 'none' || panel.style.display === '') ? 'block' : 'none';
+        }
+        if (panel.style.display === 'block') {
+            var firstInput = document.getElementById('product_name');
+            if (firstInput) firstInput.focus();
+        }
+    }
+
+    function initCategoryFilterOptions() {
+        var select = document.getElementById('productCategoryFilter');
+        if (!select) return;
+        var rows = document.querySelectorAll('.product-table-row');
+        var categories = {};
+        rows.forEach(function(row) {
+            var cat = row.getAttribute('data-category');
+            if (cat && cat.trim().length > 0) {
+                categories[cat.trim()] = true;
+            }
+        });
+
+        Object.keys(categories).sort().forEach(function(cat) {
+            var opt = document.createElement('option');
+            opt.value = cat;
+            opt.textContent = cat;
+            select.appendChild(opt);
+        });
+    }
+
+    function applyProductFilters() {
+        var query = (document.getElementById('productSearchInput').value || '').trim().toLowerCase();
+        var category = (document.getElementById('productCategoryFilter').value || '').trim();
+        var expiry = (document.getElementById('productExpiryFilter').value || '').trim();
+
+        var rows = document.querySelectorAll('.product-table-row');
+        var visibleCount = 0;
+
+        rows.forEach(function(row) {
+            var name = row.getAttribute('data-name') || '';
+            var sku = row.getAttribute('data-sku') || '';
+            var cat = row.getAttribute('data-category') || '';
+            var supplier = row.getAttribute('data-supplier') || '';
+            var exp = row.getAttribute('data-expiry') || '';
+
+            var matchesQuery = true;
+            if (query.length > 0) {
+                matchesQuery = (
+                    name.indexOf(query) !== -1 ||
+                    sku.indexOf(query) !== -1 ||
+                    cat.toLowerCase().indexOf(query) !== -1 ||
+                    supplier.indexOf(query) !== -1
+                );
+            }
+
+            var matchesCategory = (!category || cat === category);
+            var matchesExpiry = (!expiry || exp === expiry);
+
+            if (matchesQuery && matchesCategory && matchesExpiry) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        var noMatchRow = document.getElementById('noProductsMatchRow');
+        if (noMatchRow) {
+            noMatchRow.style.display = (rows.length > 0 && visibleCount === 0) ? '' : 'none';
+        }
+
+        var badge = document.getElementById('productsCounterBadge');
+        if (badge) {
+            badge.textContent = visibleCount + (visibleCount === 1 ? ' Product' : ' Products');
+        }
+    }
+
+    function resetProductFilters() {
+        var searchInput = document.getElementById('productSearchInput');
+        var catSelect = document.getElementById('productCategoryFilter');
+        var expSelect = document.getElementById('productExpiryFilter');
+
+        if (searchInput) searchInput.value = '';
+        if (catSelect) catSelect.value = '';
+        if (expSelect) expSelect.value = '';
+
+        applyProductFilters();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initCategoryFilterOptions();
+    });
+</script>
 
 </body>
 </html>
